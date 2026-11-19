@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giriş · Xaricdə Təhsil</title>
+<link rel="icon" href="static/logo.jpg">
+<link rel="stylesheet" href="static/style.css">
+<style>
+body{min-height:100vh;display:grid;grid-template-columns:420px 1fr;background:var(--bg)}
+.hero{order:2;background:linear-gradient(160deg,#0F4A2B,#07281A);color:#E8F8EE;padding:44px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:34px 34px;-webkit-mask-image:radial-gradient(circle at 70% 40%,#000,transparent 75%);mask-image:radial-gradient(circle at 70% 40%,#000,transparent 75%)}
+.hero>*{position:relative}
+.hero img{width:54px;height:54px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:#fff;margin-bottom:18px}
+.hero h1{font-size:28px;line-height:1.15;margin:0 0 8px;font-weight:700;letter-spacing:-.4px}
+.hero p{font-size:13.5px;color:#A7DDB8;max-width:400px;margin:0 0 20px}
+.hero ul{list-style:none;padding:0;margin:0;display:grid;gap:7px;max-width:400px}
+.hero li{display:flex;gap:10px;align-items:center;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600}
+.hero li i{font-style:normal;width:24px;height:24px;display:grid;place-items:center;border-radius:6px;background:rgba(74,222,128,.22);font-size:13px}
+.formside{order:1;display:grid;place-items:center;padding:24px;background:var(--surface);border-right:1px solid var(--line)}
+.box{width:min(320px,100%);padding:0!important;border:0!important;box-shadow:none!important;background:transparent!important}
+.box h2{margin:0 0 3px;font-size:20px}
+.box input{width:100%}
+.err{color:var(--bad);min-height:1.3em;margin-top:8px;font-weight:600;font-size:12px}
+@media(max-width:860px){body{grid-template-columns:1fr}.hero{order:0;padding:22px}.hero h1{font-size:22px}.hero ul{display:none}.formside{border:0}}
+</style>
+</head>
+<body>
+<section class="hero">
+  <img src="static/logo.jpg" alt="">
+  <h1>Xaricdə Təhsil<br>Global</h1>
+  <p>Tələbələr, lead-lər, maliyyə, reklam və sosial media. Hamısı bir yerdə, indi onlayn, hər yerdən.</p>
+  <ul>
+    <li><i>🎓</i> Tələbə və müraciət izləmə</li>
+    <li><i>☎️</i> Zəng mərkəzi CRM</li>
+    <li><i>📝</i> Studiya: avtomatik post hazırlama</li>
+    <li><i>📣</i> Facebook və Instagram paylaşımı</li>
+  </ul>
+</section>
+<section class="formside"><div class="box card" >
+  <h2 id="t">Giriş</h2>
+  <p class="muted" id="hint">Hesabınızla daxil olun.</p>
+  <form id="f">
+    <label>E-poçt</label><input name="username" type="email" autocomplete="username" required autofocus>
+    <label>Parol</label><input name="password" type="password" autocomplete="current-password" required>
+    <div id="p2" hidden><label>Parolu təkrarlayın</label><input name="password2" type="password" autocomplete="new-password"></div>
+    <div class="err" id="err"></div>
+    <button class="btn" style="width:100%;margin-top:8px;padding:9px" id="go">Daxil ol</button>
+  </form>
+</div></section>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SB=supabase.createClient("https://myolkaddrtdnjcjvsihq.supabase.co","sb_publishable_OAWjqMKYJD_8L6oSYhfOtA_Uc4D-8iy");
+SB.auth.getSession().then(({data:{session}})=>{if(session)location="index.html"});
+f.onsubmit=async e=>{
+  e.preventDefault();err.textContent='';
+  const d=Object.fromEntries(new FormData(f));
+  const {error}=await SB.auth.signInWithPassword({email:d.username.trim(),password:d.password});
+  if(error){err.textContent='E-poçt və ya parol səhvdir';return}
+  location="index.html";
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html><html lang="az"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Məlumat köçürmə</title>
+<style>body{font:15px system-ui;max-width:560px;margin:40px auto;padding:0 16px}button{padding:8px 14px}pre{background:#eee;padding:10px;border-radius:8px;white-space:pre-wrap}</style></head><body>
+<h2>Köhnə platformadan məlumat köçürmə</h2>
+<p>Yerli kompüterdən çıxarılmış <b>xaricde_export.json</b> faylını seçin. Yalnız daxil olmuş admin istifadə edə bilər.</p>
+<input type="file" id="f" accept=".json"> <button id="go">Köçür</button><pre id="log"></pre>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SB=supabase.createClient("https://myolkaddrtdnjcjvsihq.supabase.co","sb_publishable_OAWjqMKYJD_8L6oSYhfOtA_Uc4D-8iy");
+const log=t=>document.getElementById("log").textContent+=t+"\n";
+document.getElementById("go").onclick=async()=>{
+  const {data:{session}}=await SB.auth.getSession(); if(!session){log("Əvvəl login.html-də daxil olun.");return}
+  const file=document.getElementById("f").files[0]; if(!file){log("Fayl seçin.");return}
+  const j=JSON.parse(await file.text()); let n=0;
+  for(const [mod,rows] of Object.entries(j)){
+    const {count}=await SB.from("records").select("id",{count:"exact",head:true}).eq("module",mod);
+    if(count>0){log(mod+": artıq "+count+" qeyd var, atlandı");continue}
+    for(let i=0;i<rows.length;i+=100){
+      const chunk=rows.slice(i,i+100).map(r=>{const d={...r};const id=d._id;delete d._id;return {id,module:mod,data:d}});
+      const {error}=await SB.from("records").insert(chunk);
+      if(error){log(mod+" XƏTA: "+error.message);break}
+    }
+    n+=rows.length; log(mod+": "+rows.length+" qeyd köçürüldü");
+  }
+  log("Bitdi. Cəmi: "+n);
+};
+</script></body></html>
