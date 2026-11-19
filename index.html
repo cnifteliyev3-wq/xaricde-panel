@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f3d24">
+<title>Xaricdə Təhsil Panel</title>
+<style>
+:root{--bg:#eef4ee;--card:#fff;--ink:#14281c;--mut:#5d7366;--pri:#1f7a45;--pri2:#0f3d24;--line:#d5e2d8;--bad:#b3261e;--warn:#a86400}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1812;--card:#16251c;--ink:#e6f0e8;--mut:#90a898;--pri:#3dbb72;--pri2:#0b2a19;--line:#27402f;--bad:#ff8a80;--warn:#ffc266}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.45 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--pri2);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0;flex:1}header button{background:transparent;color:#fff;border:1px solid #ffffff55}
+main{max-width:980px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+nav{display:flex;gap:8px;margin-bottom:14px}nav button{flex:1}
+button{font:inherit;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 12px;cursor:pointer}
+button.p{background:var(--pri);border-color:var(--pri);color:#fff}button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+input,select,textarea{font:inherit;width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.item{border-top:1px solid var(--line);padding:10px 0}.item:first-child{border-top:0}
+.top{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.b{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line)}
+.b.done{color:var(--pri)}.b.error,.b.missed{color:var(--bad)}.b.pending{color:var(--warn)}
+.mut{color:var(--mut);font-size:13px}.err{color:var(--bad);font-size:13px}
+.act{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.act button{padding:5px 9px;font-size:13px}
+#login{max-width:360px;margin:12vh auto}.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="login" class="card hide">
+  <h2>Xaricdə Təhsil Panel</h2>
+  <label>E-poçt</label><input id="em" type="email" autocomplete="username">
+  <label>Parol</label><input id="pw" type="password" autocomplete="current-password">
+  <p><button class="p" id="go" style="width:100%">Daxil ol</button></p>
+  <div id="lerr" class="err"></div>
+</div>
+
+<div id="app" class="hide">
+<header><h1>Xaricdə Təhsil</h1><span id="who" class="mut" style="color:#cfe"></span><button id="out">Çıxış</button></header>
+<main>
+  <nav><button id="t-posts" class="on">📅 Postlar</button><button id="t-leads">📩 Lead-lər</button></nav>
+
+  <section id="posts">
+    <div class="card"><b>Yeni Instagram postu</b>
+      <div class="row">
+        <div><label>Ad (daxili)</label><input id="p-ad"></div>
+        <div><label>Növ</label><select id="p-tip"><option>Şəkil</option><option>Reels</option></select></div>
+        <div><label>Paylaşım vaxtı</label><input id="p-when" type="datetime-local"></div>
+      </div>
+      <label>Mətn (caption)</label><textarea id="p-metn" rows="5"></textarea>
+      <label>Şəkil / video faylı</label><input id="p-file" type="file" accept="image/*,video/mp4,video/quicktime">
+      <p class="act"><button class="p" id="p-q">Növbəyə qoy</button><button id="p-d">Qaralama saxla</button><span id="p-msg" class="mut"></span></p>
+    </div>
+    <div class="card"><div class="top"><b>Növbə</b><button id="p-r">Yenilə</button></div><div id="p-list"></div></div>
+  </section>
+
+  <section id="leads" class="hide">
+    <div class="card"><b>Yeni lead</b>
+      <div class="row">
+        <div><label>Ad</label><input id="l-name"></div>
+        <div><label>Telefon</label><input id="l-phone"></div>
+        <div><label>Ölkə / maraq</label><input id="l-country"></div>
+      </div>
+      <p class="act"><button class="p" id="l-add">Əlavə et</button></p>
+    </div>
+    <div class="card"><div class="top"><b>Lead-lər</b>
+      <select id="l-f" style="width:auto"><option value="">Hamısı</option><option>Yeni</option><option>Əlaqə saxlanıldı</option><option>Danışıqda</option><option>Qeydiyyat</option><option>İmtina</option></select></div>
+      <div id="l-list"></div></div>
+  </section>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SB = supabase.createClient("https://myolkaddrtdnjcjvsihq.supabase.co", "sb_publishable_OAWjqMKYJD_8L6oSYhfOtA_Uc4D-8iy");
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const STATES = {draft:"Qaralama", pending:"Növbədə", publishing:"Göndərilir", done:"Paylaşıldı", error:"Xəta", missed:"Qaçırıldı"};
+const LSTAT = ["Yeni","Əlaqə saxlanıldı","Danışıqda","Qeydiyyat","İmtina"];
+const fmt = d => d ? new Date(d).toLocaleString("az-AZ",{dateStyle:"short",timeStyle:"short"}) : "—";
+
+async function boot() {
+  const { data:{ session } } = await SB.auth.getSession();
+  if (!session) { $("login").classList.remove("hide"); $("app").classList.add("hide"); return; }
+  const { data: st } = await SB.from("staff").select("name,role").eq("user_id", session.user.id).maybeSingle();
+  if (!st) { await SB.auth.signOut(); $("lerr").textContent = "Bu hesabın icazəsi yoxdur."; $("login").classList.remove("hide"); return; }
+  $("login").classList.add("hide"); $("app").classList.remove("hide");
+  $("who").textContent = st.name || session.user.email;
+  loadPosts(); loadLeads();
+}
+$("go").onclick = async () => {
+  $("lerr").textContent = "";
+  const { error } = await SB.auth.signInWithPassword({ email: $("em").value.trim(), password: $("pw").value });
+  if (error) { $("lerr").textContent = "Giriş alınmadı: e-poçt və ya parol səhvdir."; return; }
+  $("pw").value = ""; boot();
+};
+$("pw").addEventListener("keydown", e => { if (e.key === "Enter") $("go").click(); });
+$("out").onclick = async () => { await SB.auth.signOut(); boot(); };
+$("t-posts").onclick = () => tab("posts"); $("t-leads").onclick = () => tab("leads");
+function tab(n) { for (const t of ["posts","leads"]) { $(t).classList.toggle("hide", t !== n); $("t-"+t).classList.toggle("on", t === n); } }
+
+/* ---- Postlar ---- */
+async function loadPosts() {
+  const { data, error } = await SB.from("posts").select("*").order("ig_when", { ascending: false, nullsFirst: true }).limit(100);
+  if (error) { $("p-list").innerHTML = '<div class="err">' + esc(error.message) + "</div>"; return; }
+  $("p-list").innerHTML = data.map(p => `<div class="item"><div class="top"><b>${esc(p.ad || "(adsız)")}</b>
+    <span class="b ${esc(p.state)}">${STATES[p.state] || esc(p.state)}</span></div>
+    <div class="mut">${esc(p.tip)} · ${fmt(p.ig_when)}${p.ig_id ? " · IG: " + esc(p.ig_id) : ""}</div>
+    ${p.error ? '<div class="err">' + esc(p.error) + "</div>" : ""}
+    <div class="mut">${esc((p.metn || "").slice(0, 120))}</div>
+    <div class="act">
+      ${p.state === "draft" || p.state === "error" || p.state === "missed" ? `<button onclick="setState(${p.id},'pending')">Növbəyə qoy</button>` : ""}
+      ${p.state === "pending" ? `<button onclick="setState(${p.id},'draft')">Növbədən çıxar</button>` : ""}
+      ${p.state !== "done" ? `<button onclick="delPost(${p.id})">Sil</button>` : ""}
+    </div></div>`).join("") || '<div class="mut">Hələ post yoxdur.</div>';
+}
+window.setState = async (id, s) => { await SB.from("posts").update({ state: s, error: null }).eq("id", id); loadPosts(); };
+window.delPost = async id => { if (confirm("Bu post silinsin?")) { await SB.from("posts").delete().eq("id", id); loadPosts(); } };
+$("p-r").onclick = loadPosts;
+async function savePost(state) {
+  const msg = $("p-msg"); msg.textContent = "";
+  const f = $("p-file").files[0];
+  if (!f) { msg.textContent = "Fayl seçin."; return; }
+  if (state === "pending" && !$("p-when").value) { msg.textContent = "Vaxt seçin."; return; }
+  if (state === "pending" && new Date($("p-when").value) < new Date()) { msg.textContent = "Vaxt keçmişdədir."; return; }
+  const isVid = f.type.startsWith("video/");
+  if ($("p-tip").value === "Reels" && !isVid) { msg.textContent = "Reels üçün video seçin."; return; }
+  if ($("p-tip").value === "Şəkil" && isVid) { msg.textContent = "Şəkil üçün şəkil faylı seçin."; return; }
+  msg.textContent = "Yüklənir…";
+  const ext = (f.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const path = "p/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+  const up = await SB.storage.from("media").upload(path, f, { contentType: f.type });
+  if (up.error) { msg.textContent = "Yükləmə xətası: " + up.error.message; return; }
+  const { error } = await SB.from("posts").insert({ ad: $("p-ad").value, tip: $("p-tip").value, metn: $("p-metn").value, media: path,
+    ig_when: $("p-when").value ? new Date($("p-when").value).toISOString() : null, state });
+  if (error) { msg.textContent = "Xəta: " + error.message; return; }
+  msg.textContent = "Saxlanıldı ✓";
+  $("p-ad").value = $("p-metn").value = $("p-when").value = ""; $("p-file").value = "";
+  loadPosts();
+}
+$("p-q").onclick = () => savePost("pending"); $("p-d").onclick = () => savePost("draft");
+
+/* ---- Lead-lər ---- */
+async function loadLeads() {
+  let q = SB.from("leads").select("*").order("created_at", { ascending: false }).limit(200);
+  if ($("l-f").value) q = q.eq("status", $("l-f").value);
+  const { data, error } = await q;
+  if (error) { $("l-list").innerHTML = '<div class="err">' + esc(error.message) + "</div>"; return; }
+  $("l-list").innerHTML = data.map(l => `<div class="item"><div class="top"><b>${esc(l.name || "(adsız)")}</b>
+    <select onchange="setLead(${l.id},'status',this.value)" style="width:auto">${LSTAT.map(s => `<option ${s === l.status ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+    <div class="mut">${l.phone ? `<a href="tel:${esc(l.phone)}">${esc(l.phone)}</a> · ` : ""}${esc(l.country || "")} · ${esc(l.source || "")} · ${fmt(l.created_at)}</div>
+    <textarea rows="2" placeholder="Qeyd" onchange="setLead(${l.id},'note',this.value)">${esc(l.note || "")}</textarea>
+    <div class="act"><button onclick="delLead(${l.id})">Sil</button></div></div>`).join("") || '<div class="mut">Lead yoxdur.</div>';
+}
+window.setLead = async (id, k, v) => { await SB.from("leads").update({ [k]: v }).eq("id", id); };
+window.delLead = async id => { if (confirm("Bu lead silinsin?")) { await SB.from("leads").delete().eq("id", id); loadLeads(); } };
+$("l-f").onchange = loadLeads;
+$("l-add").onclick = async () => {
+  if (!$("l-name").value.trim() && !$("l-phone").value.trim()) return;
+  await SB.from("leads").insert({ name: $("l-name").value, phone: $("l-phone").value, country: $("l-country").value, source: "Əl ilə" });
+  $("l-name").value = $("l-phone").value = $("l-country").value = ""; loadLeads();
+};
+boot();
+</script>
+</body>
+</html>
