@@ -87,7 +87,7 @@ async function boot() {
   const { data: st } = await SB.from("staff").select("name,role").eq("user_id", session.user.id).maybeSingle();
   if (!st) { await SB.auth.signOut(); $("lerr").textContent = "Bu hesabın icazəsi yoxdur."; $("login").classList.remove("hide"); return; }
   $("login").classList.add("hide"); $("app").classList.remove("hide");
-  $("who").textContent = st.name || session.user.email;
+  $("who").textContent = session.user.email;
   loadPosts(); loadLeads();
 }
 $("go").onclick = async () => {
