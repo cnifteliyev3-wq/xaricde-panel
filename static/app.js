@@ -105,7 +105,7 @@ function vPanel(){
   <h2>Yaxınlaşan son tarixlər</h2>
   ${soonList.length?`<div class="tw"><table><tr><th>Tələbə</th><th>Universitet</th><th>Son tarix</th><th>Qalıb</th></tr>${soonList.map(a=>`<tr><td>${esc(stud(a.stud)?.ad)}</td><td>${esc(uni(a.uni)?.ad)}</td><td>${esc(a.deadline)}</td><td><span class="tag ${a.days<0?"bad":a.days<=14?"warn":""}">${a.days<0?"keçib":a.days+" gün"}</span></td></tr>`).join("")}</table></div>`
   :`<div class="card empty">Hələ son tarixi olan aktiv müraciət yoxdur.</div>`}
-  <p class="muted" style="margin-top:24px">Məlumatlar bu kompüterdəki <b>data</b> qovluğunda saxlanılır. Yedək üçün həmin qovluğu başqa yerə kopyalayın. Universitet məlumatları təxminidir.</p>`;
+  <p class="muted" style="margin-top:24px">Məlumatlar onlayn bazada (Supabase) saxlanılır. Universitet məlumatları təxminidir.</p>`;
 }
 
 // ---------- Universitetlər ----------
